@@ -1,17 +1,32 @@
+/*
+    Author: Andreas Hammarstrand
+    Written: 2020/10/03
+    Updated: 2020/10/06
+    Purpose:
+        BFS.java attempts at implementing Breadth First Search for graphs in
+        the WeightedAdjacencyList structure.
+    Usage:
+        Import to use on any graph that is in the WeightedAdjacencyList
+        structure or use the main function with the path to a text file as the
+        first argument. The text file should be a file only containing
+        bidirectional edges where the nodes use string identifiers.
+
+        Requires `WeightedAdjacencyList.java` and `TestDataParsing.java` to
+        function.
+ */
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
 
 public class BFS
 {
     // searches for the given node `to` from given node `from` in
     // the given graph `graph`
     public static <Key> LinkedList<Key> search(
+            WeightedAdjacencyList<Key> graph,
             Key from,
-            Key to,
-            WeightedAdjacencyList<Key> graph)
+            Key to)
     {
         // if the graph does not contain either nodes, there can be no path so
         // nothing
@@ -21,9 +36,7 @@ public class BFS
         }
 
         // otherwise we get the starting node and
-        return search(
-                graph.node(from),
-                to);
+        return search(graph.node(from), to);
     }
 
     // searches for the given node `to` from given node `from`
@@ -31,77 +44,75 @@ public class BFS
             Node<Key> from,
             Key to)
     {
-        // create a hash set with the start node in it already
-        HashSet<Key> marked = new HashSet<>();
-        marked.add(from.Identifier);
+        // create a set containing the marked nodes
+        HashSet<Key> marked =
+                new HashSet<>();
 
-        return search(from, to, marked);
-    }
+        marked.add(from.identifier);
 
-    // recursively search for the given `to` node from the `from` node, while
-    // skipping the nodes contained within `marked`
-    private static <Key> LinkedList<Key> search(
-            Node<Key> from,
-            Key to,
-            HashSet<Key> marked)
-    {
-        LinkedList<Node<Key>> toSearch = new LinkedList<>();
+        // all the paths built up
+        Queue<LinkedList<Node<Key>>> toSearch =
+                new LinkedList<>();
 
-        // go through all children and check them, if they are the correct node
-        // return a path containing only that node.
-        // otherwise add the node to a list that is to be searched (this is to
-        // avoid checking if the node is marked)
-        for (KeyValuePair<Node<Key>, Integer> nodeAndWeight
-                : from.adjacent)
+        // the initial path; the starting node
+        LinkedList<Node<Key>> firstPath =
+                new LinkedList<>();
+        firstPath.add(from);
+
+        toSearch.add(firstPath);
+
+        // check all paths within the path queue until the correct one is found
+        // otherwise return null
+        while (!toSearch.isEmpty())
         {
-            // if the node is marked, it's been visited so skip it
-            if (marked.contains(nodeAndWeight.Key.Identifier))
-            {
-                continue;
-            }
+            // get the first path in the queue
+            LinkedList<Node<Key>> path =
+                    toSearch.remove();
 
-            // node that is searched for, return path containing only it
-            if (nodeAndWeight.Key.Identifier.equals(to))
+            // last node of the list, on path to parent
+            Node<Key> endNode =
+                    path.getLast();
+
+            // if a path containing the end node was found, return said path
+            // but only with the keys (the Node<Key> structure is not relevant
+            // to the user)
+            if (endNode.identifier.equals(to))
             {
-                LinkedList<Key> path =
+                LinkedList<Key> identifierPath =
                         new LinkedList<>();
 
-                // this algorithms doesn't add the currently parent on return
-                // so it is manually done here
-                path.add(from.Identifier);
-                path.add(to);
+                for (Node<Key> node : path)
+                {
+                    identifierPath.addLast(node.identifier);
+                }
 
-                return path;
+                return identifierPath;
             }
 
-            // the node was not correct, add it as marked and the list for
-            // nodes which children to check
-            marked.add(nodeAndWeight.Key.Identifier);
-            toSearch.addLast(nodeAndWeight.Key);
-        }
-
-
-        // go through each adjacent and search for a path to the given node
-        for (Node<Key> node : toSearch)
-        {
-            // recursively find the path
-            LinkedList<Key> pathResult =
-                    search(node, to, marked);
-
-            // if the result wasn't null then a path from one of the adjacent
-            // children nodes was found, at it has parent in path
-            if (pathResult != null)
+            for (KeyValuePair<Node<Key>, Integer> nodeAndWeight
+                        : endNode.adjacent)
             {
-                pathResult
-                        .addFirst(from.Identifier);
+                if (!marked.contains(nodeAndWeight.Key.identifier))
+                {
+                    // copy the path to the parent node
+                    LinkedList<Node<Key>> newPath =
+                            new LinkedList<>(path);
 
-                return pathResult;
+                    // add the current adjacent
+                    newPath.addLast(nodeAndWeight.Key);
+
+                    // enqueue path
+                    toSearch.add(newPath);
+
+                    // set node as marked
+                    marked.add(nodeAndWeight.Key.identifier);
+                }
             }
         }
 
-        // no path was found, return null
         return null;
     }
+
 
     public static void main(String[] args) throws FileNotFoundException
     {
@@ -109,7 +120,7 @@ public class BFS
 
         // create graph from file
         WeightedAdjacencyList<String> graph =
-                TestDataParsing.namedNodesBidirectional(file);
+                TestDataParsing.namedNodesUnidirectional(file);
 
         // take input
         Scanner in = new Scanner(System.in);
@@ -136,7 +147,7 @@ public class BFS
                     .toUpperCase();
 
             // from `x` to `y` in `graph`
-            LinkedList<String> path = search(x, y, graph);
+            LinkedList<String> path = search(graph, x, y);
 
             // print path
             System.out.printf("Path: %s\n\n", path);

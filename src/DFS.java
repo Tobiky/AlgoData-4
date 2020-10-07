@@ -1,3 +1,20 @@
+/*
+    Author: Andreas Hammarstrand
+    Written: 2020/10/03
+    Updated: 2020/10/06
+    Purpose:
+        DFS.java attempts at implementing Depth First Search for graphs in
+        the WeightedAdjacencyList structure.
+    Usage:
+        Import to use on any graph that is in the WeightedAdjacencyList
+        structure or use the main function with the path to a text file as the
+        first argument. The text file should be a file only containing
+        bidirectional edges where the nodes use string identifiers.
+
+        Requires `WeightedAdjacencyList.java` and `TestDataParsing.java` to
+        function.
+ */
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
@@ -33,7 +50,7 @@ public class DFS
     {
         // create a hash set with the start node in it already
         HashSet<Key> marked = new HashSet<>();
-        marked.add(from.Identifier);
+        marked.add(from.identifier);
 
         return search(from, to, marked);
     }
@@ -47,7 +64,7 @@ public class DFS
     {
         // the given node was found, return a list containing only that element
         // so that previous recursions can build onto it
-        if (from.Identifier.equals(to))
+        if (from.identifier.equals(to))
         {
             LinkedList<Key> path =
                     new LinkedList<>();
@@ -64,12 +81,12 @@ public class DFS
             // node has been marked, skip it
             if (marked.contains(
                     nodeAndWeight.Key
-                            .Identifier))
+                            .identifier))
             {
                 continue;
             }
 
-            marked.add(nodeAndWeight.Key.Identifier);
+            marked.add(nodeAndWeight.Key.identifier);
 
             // recursively find the path
             LinkedList<Key> pathResult =
@@ -80,7 +97,7 @@ public class DFS
             if (pathResult != null)
             {
                 pathResult
-                        .addFirst(from.Identifier);
+                        .addFirst(from.identifier);
 
                 return pathResult;
             }

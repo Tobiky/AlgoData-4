@@ -1,9 +1,28 @@
+/*
+    Author: Andreas Hammarstrand
+    Written: 2020/09/30
+    Updated: 2020/10/06
+    Purpose:
+        WeightedAdjacencyList.java is a adjacency list that supports actions
+        for undirected, directed, and weighted graphs.
+    Usage:
+        Import as a class to use the structure or execute the main function to
+        test the structure
+ */
+
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 
-public class WeightedAdjacencyList<Key>
+public class WeightedAdjacencyList<Key> implements Iterable<Key>
 {
     private final HashMap<Key, Node<Key>> adjacencyList;
+
+    private int edges;
+    private int nodes;
+
+    public int edges() { return edges; }
+    public int nodes() { return nodes; }
 
     public WeightedAdjacencyList()
     {
@@ -16,16 +35,19 @@ public class WeightedAdjacencyList<Key>
         return adjacencyList.get(node);
     }
 
+    // add the node to the graph
     public void addNode(Key node)
     {
         Node<Key> nodeReference =
                 new Node<>();
 
-        nodeReference.Identifier = node;
+        nodeReference.identifier = node;
         nodeReference.adjacent =
                 new LinkedList<>();
 
         adjacencyList.put(node, nodeReference);
+
+        nodes++;
     }
 
     // adds a unidirectional edge from node a to node b, with the given weight
@@ -35,16 +57,15 @@ public class WeightedAdjacencyList<Key>
             int weight)
     {
         KeyValuePair<Node<Key>, Integer> nodeAndEdge
-                = new KeyValuePair<>();
-
-        nodeAndEdge.Key = node(b);
-        nodeAndEdge.Value = weight;
+                = new KeyValuePair<>(node(b), weight);
 
         // get node a and add node b as its adjacent
         adjacencyList
                 .get(a)
                 .adjacent
                     .add(nodeAndEdge);
+
+        edges++;
     }
 
     // adds a unidirectional edge from node a to node b, with no weight
@@ -94,7 +115,7 @@ public class WeightedAdjacencyList<Key>
         {
             if (nodeAndWeight
                     .Key
-                    .Identifier
+                    .identifier
                     .equals(head))
             {
                 return true;
@@ -102,5 +123,12 @@ public class WeightedAdjacencyList<Key>
         }
 
         return false;
+    }
+
+    // returns an iterator over the nodes
+    @Override
+    public Iterator<Key> iterator()
+    {
+        return adjacencyList.keySet().iterator();
     }
 }
